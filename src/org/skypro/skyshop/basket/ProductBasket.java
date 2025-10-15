@@ -1,57 +1,114 @@
 package org.skypro.skyshop.basket;
 
 import org.skypro.skyshop.product.Product;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ProductBasket {
-    private final Product[] products;
-    private int count;
+    private final Map<String, List<Product>> products;
 
     public ProductBasket() {
-        this.products = new Product[5];
-        this.count = 0;
+        this.products = new HashMap<>();
     }
 
+    /**
+     * Добавляет продукт в корзину
+     */
     public void addProduct(Product product) {
-        if (count >= products.length) {
-            System.out.println("Невозможно добавить продукт");
-            return;
-        }
-        products[count] = product;
-        count++;
+        products.compute(product.getName(), (name, productList) -> {
+            if (productList == null) {
+                productList = new ArrayList<>();
+            }
+            productList.add(product);
+            return productList;
+        });
     }
 
+    /**
+     * Вычисляет общую стоимость корзины с использованием Stream API
+     */
     public int getTotalPrice() {
-        int total = 0;
-        for (int i = 0; i < count; i++) {
-            total += products[i].getPrice();
-        }
-        return total;
+        return products.values().stream()
+                .flatMap(List::stream)
+                .mapToInt(Product::getPrice)
+                .sum();
     }
 
+    /**
+     * Печатает содержимое корзины с использованием Stream API
+     */
     public void printBasket() {
-        if (count == 0) {
+        if (products.isEmpty()) {
             System.out.println("в корзине пусто");
             return;
         }
-        for (int i = 0; i < count; i++) {
-            System.out.println(products[i].getName() + ": " + products[i].getPrice());
-        }
+
+        // Вывод каждого продукта с использованием Stream API
+        products.values().stream()
+                .flatMap(List::stream)
+                .forEach(product -> System.out.println(product.toString()));
+
+        // Подсчет специальных товаров
+        long specialCount = getSpecialCount();
+
         System.out.println("Итого: " + getTotalPrice());
+        System.out.println("Специальных товаров: " + specialCount);
     }
 
+    /**
+     * Проверяет наличие продукта по имени с использованием Stream API
+     */
     public boolean containsProduct(String name) {
-        for (int i = 0; i < count; i++) {
-            if (products[i].getName().equals(name)) {
-                return true;
-            }
-        }
-        return false;
+        return products.values().stream()
+                .flatMap(List::stream)
+                .anyMatch(product -> product.getName().equals(name));
     }
 
+    /**
+     * Удаляет продукты по имени с использованием Stream API
+     */
+    public List<Product> removeProductsByName(String name) {
+        List<Product> removedProducts = products.values().stream()
+                .flatMap(List::stream)
+                .filter(product -> product.getName().equals(name))
+                .collect(Collectors.toList());
+
+        // Удаляем из мапы
+        products.remove(name);
+
+        return removedProducts;
+    }
+
+    /**
+     * Очищает корзину
+     */
     public void clearBasket() {
-        for (int i = 0; i < products.length; i++) {
-            products[i] = null;
-        }
-        count = 0;
+        products.clear();
+    }
+
+    /**
+     * Приватный метод для подсчета специальных товаров с использованием Stream API
+     */
+    private long getSpecialCount() {
+        return products.values().stream()
+                .flatMap(List::stream)
+                .filter(Product::isSpecial)
+                .count();
+    }
+
+    /**
+     * Получает количество уникальных продуктов в корзине
+     */
+    public int getUniqueProductCount() {
+        return products.size();
+    }
+
+    /**
+     * Получает общее количество товаров в корзине
+     */
+    public int getTotalProductCount() {
+        return products.values().stream()
+                .mapToInt(List::size)
+                .sum();
     }
 }

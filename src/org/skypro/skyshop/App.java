@@ -1,60 +1,118 @@
 package org.skypro.skyshop;
 
 import org.skypro.skyshop.basket.ProductBasket;
-import org.skypro.skyshop.product.Product;
+import org.skypro.skyshop.product.*;
+import org.skypro.skyshop.search.SearchEngine;
+import org.skypro.skyshop.search.Searchable;
+
+import java.util.TreeSet;
 
 public class App {
     public static void main(String[] args) {
-        // Создание продуктов
-        Product milk = new Product("Молоко", 80);
-        Product bread = new Product("Хлеб", 40);
-        Product cheese = new Product("Сыр", 200);
-        Product juice = new Product("Сок", 100);
-        Product yogurt = new Product("Йогурт", 50);
-        Product butter = new Product("Масло", 150); // Этот не добавится из-за лимита
+        System.out.println("=== ДОМАШНЯЯ РАБОТА 8: STREAM API ===");
+        System.out.println();
 
-        // Создание корзины
+        // Создание различных продуктов
+        SimpleProduct laptop = new SimpleProduct("Ноутбук", 50000);
+        SimpleProduct mouse = new SimpleProduct("Мышь", 1500);
+        DiscountedProduct phone = new DiscountedProduct("Телефон", 30000, 10);
+        FixPriceProduct headphones = new FixPriceProduct("Наушники");
+
+        // Демонстрация работы корзины с Stream API
+        demonstrateBasketWithStreams(laptop, mouse, phone, headphones);
+
+        System.out.println("\n" + "=".repeat(50) + "\n");
+
+        // Демонстрация работы поискового движка с Stream API
+        demonstrateSearchWithStreams(laptop, phone, headphones);
+    }
+
+    /**
+     * Демонстрация работы корзины с использованием Stream API
+     */
+    private static void demonstrateBasketWithStreams(SimpleProduct laptop, SimpleProduct mouse,
+                                                     DiscountedProduct phone, FixPriceProduct headphones) {
+        System.out.println("=== ДЕМОНСТРАЦИЯ КОРЗИНЫ С STREAM API ===");
+
         ProductBasket basket = new ProductBasket();
 
-        // 1. Добавление продукта в корзину.
-        basket.addProduct(milk);
-        basket.addProduct(bread);
-        basket.addProduct(cheese);
-        basket.addProduct(juice);
-        basket.addProduct(yogurt);
+        // Добавление продуктов в корзину
+        System.out.println("\n1. Добавление продуктов в корзину:");
+        basket.addProduct(laptop);
+        basket.addProduct(mouse);
+        basket.addProduct(phone);
+        basket.addProduct(headphones);
+        basket.addProduct(mouse); // Добавляем еще одну мышь
 
-        // 2. Добавление продукта в заполненную корзину.
-        basket.addProduct(butter); // Должно появиться сообщение "Невозможно добавить продукт"
-
-        // 3. Печать содержимого корзины с несколькими товарами.
-        System.out.println("--- Корзина с товарами ---");
+        // Печать содержимого корзины (использует Stream API)
+        System.out.println("\n2. Содержимое корзины:");
         basket.printBasket();
 
-        // 4. Получение стоимости корзины с несколькими товарами.
-        System.out.println("--- Общая стоимость ---");
-        System.out.println(basket.getTotalPrice());
+        // Проверка наличия продуктов (использует Stream API)
+        System.out.println("\n3. Проверка наличия продуктов:");
+        System.out.println("Есть ли ноутбук в корзине: " + basket.containsProduct("Ноутбук"));
+        System.out.println("Есть ли планшет в корзине: " + basket.containsProduct("Планшет"));
 
-        // 5. Поиск товара, который есть в корзине.
-        System.out.println("--- Поиск 'Хлеб' (есть) ---");
-        System.out.println(basket.containsProduct("Хлеб"));
+        // Статистика корзины
+        System.out.println("\n4. Статистика корзины:");
+        System.out.println("Уникальных продуктов: " + basket.getUniqueProductCount());
+        System.out.println("Общее количество товаров: " + basket.getTotalProductCount());
+        System.out.println("Общая стоимость: " + basket.getTotalPrice() + " руб.");
 
-        // 6. Поиск товара, которого нет в корзине.
-        System.out.println("--- Поиск 'Колбаса' (нет) ---");
-        System.out.println(basket.containsProduct("Колбаса"));
+        // Удаление продукта по имени (использует Stream API)
+        System.out.println("\n5. Удаление мыши:");
+        basket.removeProductsByName("Мышь");
 
-        // 7. Очистка корзины.
+        // Печать обновленного содержимого
+        System.out.println("\n6. Обновленное содержимое корзины:");
+        basket.printBasket();
+
+        // Демонстрация очистки корзины
+        System.out.println("\n7. Очистка корзины:");
         basket.clearBasket();
-
-        // 8. Печать содержимого пустой корзины.
-        System.out.println("--- Пустая корзина ---");
         basket.printBasket();
+    }
 
-        // 9. Получение стоимости пустой корзины.
-        System.out.println("--- Стоимость пустой корзины ---");
-        System.out.println(basket.getTotalPrice());
+    /**
+     * Демонстрация работы поискового движка с использованием Stream API
+     */
+    private static void demonstrateSearchWithStreams(SimpleProduct laptop, DiscountedProduct phone,
+                                                     FixPriceProduct headphones) {
+        System.out.println("=== ДЕМОНСТРАЦИЯ ПОИСКА С STREAM API ===");
 
-        // 10. Поиск товара по имени в пустой корзине.
-        System.out.println("--- Поиск в пустой корзине ---");
-        System.out.println(basket.containsProduct("Молоко"));
+        SearchEngine searchEngine = new SearchEngine();
+
+        // Добавление продуктов в поисковый движок
+        searchEngine.add(laptop);
+        searchEngine.add(phone);
+        searchEngine.add(headphones);
+
+        System.out.println("В поисковый движок добавлено объектов: " + searchEngine.size());
+
+        // Поиск по разным запросам (использует Stream API)
+        System.out.println("\n1. Поиск по запросу 'Ноутбук':");
+        TreeSet<Searchable> results1 = searchEngine.search("Ноутбук");
+        results1.forEach(result ->
+                System.out.println(" - " + result.getStringRepresentation())
+        );
+
+        System.out.println("\n2. Поиск по запросу 'Телефон':");
+        TreeSet<Searchable> results2 = searchEngine.search("Телефон");
+        results2.forEach(result ->
+                System.out.println(" - " + result.getStringRepresentation())
+        );
+
+        System.out.println("\n3. Поиск по запросу 'Наушники':");
+        TreeSet<Searchable> results3 = searchEngine.search("Наушники");
+        results3.forEach(result ->
+                System.out.println(" - " + result.getStringRepresentation())
+        );
+
+        // Поиск по несуществующему запросу
+        System.out.println("\n4. Поиск по несуществующему запросу 'Планшет':");
+        TreeSet<Searchable> results4 = searchEngine.search("Планшет");
+        if (results4.isEmpty()) {
+            System.out.println("Результаты не найдены");
+        }
     }
 }
