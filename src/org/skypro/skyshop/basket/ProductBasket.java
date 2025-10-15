@@ -1,57 +1,52 @@
 package org.skypro.skyshop.basket;
 
 import org.skypro.skyshop.product.Product;
+import java.util.*;
 
 public class ProductBasket {
-    private final Product[] products;
-    private int count;
+    // Используем Map для хранения продуктов по имени (из предыдущих ДЗ)
+    private final Map<String, List<Product>> products;
 
     public ProductBasket() {
-        this.products = new Product[5];
-        this.count = 0;
+        this.products = new HashMap<>();
     }
 
     public void addProduct(Product product) {
-        if (count >= products.length) {
-            System.out.println("Невозможно добавить продукт");
-            return;
-        }
-        products[count] = product;
-        count++;
+        products.computeIfAbsent(product.getName(), k -> new ArrayList<>()).add(product);
     }
 
     public int getTotalPrice() {
-        int total = 0;
-        for (int i = 0; i < count; i++) {
-            total += products[i].getPrice();
-        }
-        return total;
+        return products.values().stream()
+                .flatMap(List::stream)
+                .mapToInt(Product::getPrice)
+                .sum();
     }
 
     public void printBasket() {
-        if (count == 0) {
-            System.out.println("в корзине пусто");
+        if (products.isEmpty()) {
+            System.out.println("В корзине пусто");
             return;
         }
-        for (int i = 0; i < count; i++) {
-            System.out.println(products[i].getName() + ": " + products[i].getPrice());
-        }
-        System.out.println("Итого: " + getTotalPrice());
+
+        System.out.println("Содержимое корзины:");
+        products.values().stream()
+                .flatMap(List::stream)
+                .forEach(product -> System.out.println("• " + product));
+
+        int specialCount = (int) products.values().stream()
+                .flatMap(List::stream)
+                .filter(Product::isSpecial)
+                .count();
+
+        System.out.println("Итого: " + getTotalPrice() + " руб.");
+        System.out.println("Специальных товаров: " + specialCount);
     }
 
-    public boolean containsProduct(String name) {
-        for (int i = 0; i < count; i++) {
-            if (products[i].getName().equals(name)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean containsProductByName(String name) {
+        return products.containsKey(name);
     }
 
     public void clearBasket() {
-        for (int i = 0; i < products.length; i++) {
-            products[i] = null;
-        }
-        count = 0;
+        products.clear();
     }
 }
