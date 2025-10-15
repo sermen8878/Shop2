@@ -1,3 +1,4 @@
+import org.skypro.skyshop.exception.BestResultNotFound;
 package org.skypro.skyshop;
 
 import org.skypro.skyshop.basket.ProductBasket;
@@ -56,5 +57,53 @@ public class App {
         // 10. Поиск товара по имени в пустой корзине.
         System.out.println("--- Поиск в пустой корзине ---");
         System.out.println(basket.containsProduct("Молоко"));
+        // Демонстрация исключений
+        System.out.println("\n=== ДЕМОНСТРАЦИЯ ИСКЛЮЧЕНИЙ ===");
+
+// Демонстрация валидации в конструкторах
+        try {
+            System.out.println("1. Попытка создать продукт с пустым именем:");
+            SimpleProduct invalidProduct = new SimpleProduct("", 100);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Поймано исключение: " + e.getMessage());
+        }
+
+        try {
+            System.out.println("2. Попытка создать продукт с отрицательной ценой:");
+            SimpleProduct invalidProduct = new SimpleProduct("Телевизор", -100);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Поймано исключение: " + e.getMessage());
+        }
+
+        try {
+            System.out.println("3. Попытка создать продукт с невалидной скидкой:");
+            DiscountedProduct invalidProduct = new DiscountedProduct("Наушники", 5000, 150);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Поймано исключение: " + e.getMessage());
+        }
+
+// Демонстрация поиска лучшего совпадения
+        try {
+            System.out.println("4. Поиск лучшего совпадения для существующего запроса:");
+            SearchEngine searchEngine = new SearchEngine(10);
+            // Добавляем тестовые данные
+            searchEngine.add(milk);
+            searchEngine.add(bread);
+            searchEngine.add(laptop);
+            searchEngine.add(phone);
+
+            Searchable bestMatch = searchEngine.findBestMatch("Молоко");
+            System.out.println("Найден лучший результат: " + bestMatch.getName());
+        } catch (BestResultNotFound e) {
+            System.out.println("Поймано исключение: " + e.getMessage());
+        }
+
+        try {
+            System.out.println("5. Поиск лучшего совпадения для несуществующего запроса:");
+            SearchEngine emptyEngine = new SearchEngine(10);
+            Searchable bestMatch = emptyEngine.findBestMatch("НесуществующийТовар");
+        } catch (BestResultNotFound e) {
+            System.out.println("Поймано исключение: " + e.getMessage());
+        }
     }
 }
