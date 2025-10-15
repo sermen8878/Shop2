@@ -1,60 +1,125 @@
 package org.skypro.skyshop;
 
 import org.skypro.skyshop.basket.ProductBasket;
-import org.skypro.skyshop.product.Product;
+import org.skypro.skyshop.product.*;
+import org.skypro.skyshop.search.SearchEngine;
+import org.skypro.skyshop.search.Searchable;
+import org.skypro.skyshop.search.Article;
+
+import java.util.List;
+import java.util.Map;
 
 public class App {
     public static void main(String[] args) {
-        // Создание продуктов
-        Product milk = new Product("Молоко", 80);
-        Product bread = new Product("Хлеб", 40);
-        Product cheese = new Product("Сыр", 200);
-        Product juice = new Product("Сок", 100);
-        Product yogurt = new Product("Йогурт", 50);
-        Product butter = new Product("Масло", 150); // Этот не добавится из-за лимита
+        System.out.println("=== Демонстрация работы интернет-магазина ===");
 
-        // Создание корзины
+        // Создаем продукты разных типов
+        SimpleProduct phone = new SimpleProduct("Телефон", 50000);
+        SimpleProduct laptop = new SimpleProduct("Ноутбук", 100000);
+        DiscountedProduct headphones = new DiscountedProduct("Наушники", 15000, 20);
+        FixPriceProduct mouse = new FixPriceProduct("Мышь");
+        FixPriceProduct keyboard = new FixPriceProduct("Клавиатура");
+
+        // Создаем корзину
         ProductBasket basket = new ProductBasket();
 
-        // 1. Добавление продукта в корзину.
-        basket.addProduct(milk);
-        basket.addProduct(bread);
-        basket.addProduct(cheese);
-        basket.addProduct(juice);
-        basket.addProduct(yogurt);
+        System.out.println("\n=== 1. Добавление продуктов в корзину ===");
+        basket.addProduct(phone);
+        basket.addProduct(laptop);
+        basket.addProduct(headphones);
+        basket.addProduct(mouse);
+        basket.addProduct(keyboard);
 
-        // 2. Добавление продукта в заполненную корзину.
-        basket.addProduct(butter); // Должно появиться сообщение "Невозможно добавить продукт"
+        // Пытаемся добавить еще один продукт (теперь без ограничения размера)
+        basket.addProduct(new SimpleProduct("Планшет", 30000));
+        System.out.println("Добавлен планшет - ограничения по размеру больше нет!");
 
-        // 3. Печать содержимого корзины с несколькими товарами.
-        System.out.println("--- Корзина с товарами ---");
+        System.out.println("\n=== 2. Печать содержимого корзины ===");
         basket.printBasket();
 
-        // 4. Получение стоимости корзины с несколькими товарами.
-        System.out.println("--- Общая стоимость ---");
-        System.out.println(basket.getTotalPrice());
+        System.out.println("\n=== 3. Получение общей стоимости корзины ===");
+        System.out.println("Общая стоимость: " + basket.getTotalPrice());
 
-        // 5. Поиск товара, который есть в корзине.
-        System.out.println("--- Поиск 'Хлеб' (есть) ---");
-        System.out.println(basket.containsProduct("Хлеб"));
+        System.out.println("\n=== 4. Поиск товаров в корзине ===");
+        System.out.println("Есть ли 'Телефон' в корзине: " + basket.containsProduct("Телефон"));
+        System.out.println("Есть ли 'Монитор' в корзине: " + basket.containsProduct("Монитор"));
 
-        // 6. Поиск товара, которого нет в корзине.
-        System.out.println("--- Поиск 'Колбаса' (нет) ---");
-        System.out.println(basket.containsProduct("Колбаса"));
+        System.out.println("\n=== 5. Демонстрация удаления по имени ===");
 
-        // 7. Очистка корзины.
-        basket.clearBasket();
+        // Удаляем существующий продукт
+        List<Product> removedProducts = basket.removeProductsByName("Телефон");
+        System.out.println("Удаленные продукты 'Телефон':");
+        if (removedProducts.isEmpty()) {
+            System.out.println("Список пуст");
+        } else {
+            removedProducts.forEach(p -> System.out.println(" - " + p));
+        }
 
-        // 8. Печать содержимого пустой корзины.
-        System.out.println("--- Пустая корзина ---");
+        System.out.println("\nКорзина после удаления телефона:");
         basket.printBasket();
 
-        // 9. Получение стоимости пустой корзины.
-        System.out.println("--- Стоимость пустой корзины ---");
-        System.out.println(basket.getTotalPrice());
+        // Пытаемся удалить несуществующий продукт
+        List<Product> notRemoved = basket.removeProductsByName("Несуществующий");
+        System.out.println("\nПопытка удалить несуществующий продукт:");
+        if (notRemoved.isEmpty()) {
+            System.out.println("Список пуст - продукт не найден");
+        }
 
-        // 10. Поиск товара по имени в пустой корзине.
-        System.out.println("--- Поиск в пустой корзине ---");
-        System.out.println(basket.containsProduct("Молоко"));
+        System.out.println("\n=== 6. Очистка корзины ===");
+        basket.clear();
+
+        System.out.println("=== 7. Печать пустой корзины ===");
+        basket.printBasket();
+
+        System.out.println("=== 8. Получение стоимости пустой корзины ===");
+        System.out.println("Стоимость пустой корзины: " + basket.getTotalPrice());
+
+        System.out.println("=== 9. Поиск в пустой корзине ===");
+        System.out.println("Есть ли 'Телефон' в пустой корзине: " + basket.containsProduct("Телефон"));
+
+        // Восстанавливаем продукты для демонстрации поиска
+        basket.addProduct(phone);
+        basket.addProduct(laptop);
+        basket.addProduct(headphones);
+
+        System.out.println("\n=== 10. Демонстрация работы поискового движка ===");
+
+        // Создаем поисковый движок
+        SearchEngine engine = new SearchEngine();
+
+        // Добавляем все продукты в поисковый движок
+        engine.add(phone);
+        engine.add(laptop);
+        engine.add(headphones);
+        engine.add(mouse);
+        engine.add(keyboard);
+
+        // Создаем несколько статей для поиска
+        Article article1 = new Article("Обзор телефона", "Новый телефон обладает отличными характеристиками...");
+        Article article2 = new Article("Игровой ноутбук", "Мощный ноутбук для игр и работы...");
+
+        engine.add(article1);
+        engine.add(article2);
+
+        // Демонстрируем поиск
+        System.out.println("\nРезультаты поиска 'тел':");
+        Map<String, Searchable> results1 = engine.search("тел");
+        results1.forEach((name, item) ->
+                System.out.println(" - " + name + ": " + item.getStringRepresentation())
+        );
+
+        System.out.println("\nРезультаты поиска 'ноут':");
+        Map<String, Searchable> results2 = engine.search("ноут");
+        results2.forEach((name, item) ->
+                System.out.println(" - " + name + ": " + item.getStringRepresentation())
+        );
+
+        System.out.println("\nРезультаты поиска 'игр':");
+        Map<String, Searchable> results3 = engine.search("игр");
+        results3.forEach((name, item) ->
+                System.out.println(" - " + name + ": " + item.getStringRepresentation())
+        );
+
+        System.out.println("\n=== Демонстрация завершена ===");
     }
 }
