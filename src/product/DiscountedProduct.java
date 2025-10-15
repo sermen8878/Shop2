@@ -1,3 +1,5 @@
+package product;
+
 public abstract class Product {
     private final String name;
 
