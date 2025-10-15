@@ -1,6 +1,6 @@
 package org.skypro.skyshop.product;
 
-public class Article implements Searchable {
+public class Product {
     private final String name;
     private final int price;
 
